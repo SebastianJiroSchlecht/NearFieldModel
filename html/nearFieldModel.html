@@ -1,0 +1,283 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>nearFieldModel</title><meta name="generator" content="MATLAB 9.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-11-21"><meta name="DC.source" content="nearFieldModel.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [num,den,fs] = nearFieldModel(theta, rho_n)
+<span class="comment">%nearFieldModel - computes the IIR filter for the near field transfer</span>
+<span class="comment">%function as described in S. Spagnol, E. Tavazzi, and F. Avanzini,</span>
+<span class="comment">%"Distance rendering and perception of nearby virtual sound sources with a</span>
+<span class="comment">%near-field filter model,"</span>
+<span class="comment">%in Applied Acoustics, vol. 115, pp. 61-73, Jan. 2017.</span>
+<span class="comment">%</span>
+<span class="comment">% Computes the</span>
+<span class="comment">%</span>
+<span class="comment">% Syntax:  [num,den,fs] = nearFieldModel(theta, rho_n)</span>
+<span class="comment">%</span>
+<span class="comment">% Inputs:</span>
+<span class="comment">%    theta - Angle of incidence in radiants</span>
+<span class="comment">%    rho_n - Distance of source, normalized to head radius</span>
+<span class="comment">%</span>
+<span class="comment">% Outputs:</span>
+<span class="comment">%    num - Numerator of model filter</span>
+<span class="comment">%    den - Denominator of model filter</span>
+<span class="comment">%    fs  - Sampling frequency used</span>
+<span class="comment">% Example:</span>
+<span class="comment">%    [num,den,fs] = nearFieldModel(0.3, 2.1)</span>
+<span class="comment">%</span>
+<span class="comment">% Other m-files required: clip, speedOfSound</span>
+<span class="comment">%</span>
+<span class="comment">% See also: visualize_nearFieldModel.m</span>
+<span class="comment">% Author: Dr.-Ing. Sebastian Jiro Schlecht,</span>
+<span class="comment">% International Audio Laboratories, University of Erlangen-Nuremberg</span>
+<span class="comment">% email address: sebastian.schlecht@audiolabs-erlangen.de</span>
+<span class="comment">% Website: sebastianjiroschlecht.com</span>
+<span class="comment">% 21. November 2018; Last revision: 21. November 2018</span>
+
+<span class="comment">% constants</span>
+fs = 48000;
+a_0 = 8.75 / 100;
+a = 8.75 / 100;
+
+
+<span class="comment">% Table 1</span>
+data = [0  12.97  -9.69  -1.14 0.219  -4.39 2.123  -0.55    -0.06 0.457 -0.67 0.174 -1.75 0.699;
+    10  13.19 234.2 18.48  -8.5  -4.31  -2.78 0.59          -0.17 0.455 0.142 -0.11 -0.01 -0.35;
+    20  12.13  -11.2  -1.25 0.346  -4.18 4.224  -1.01       -0.02 -0.87 3404  -1699 7354  -5350;
+    30  11.19  -9.03  -1.02 0.336  -4.01 3.039  -0.56       -0.32 0.465 -0.91 0.437 -2.18 1.188;
+    40  9.91  -7.87  -0.83 0.379  -3.87  -0.57 0.665        -1.13 0.494 -0.67 0.658 -1.2  0.256;
+    50  8.328  -7.42  -0.67 0.421  -4.1  -34.7 11.39        -8.3  0.549 -1.21 2.02  -1.59 0.816;
+    60  6.493  -7.31  -0.5 0.423  -3.87 3.271  -1.57        0.637 0.663 -1.76 6.815 -1.23 1.166;
+    70  4.455  -7.28  -0.32 0.382  -5.02 0.023  -0.87       0.325 0.691 4.655 0.614 -0.89 0.76;
+    80  2.274  -7.29  -0.11 0.314  -6.72  -8.96 0.37        -0.08 3.507 55.09 589.3 29.23 59.51;
+    90  0.018  -7.48  -0.13 0.24  -8.69  -58.4 5.446        -1.19 -27.4 10336 16818 1945  1707;
+    100   -2.24  -8.04 0.395 0.177  -11.2 11.47  -1.13      0.103 6.371 1.735 -9.39 -0.06 -1.12;
+    110   -4.43  -9.23 0.699 0.132  -12.1 8.716  -0.63      -0.12 7.032 40.88 -44.1 5.635 -6.18;
+    120   -6.49  -11.6 1.084 0.113  -11.1 21.8  -2.01       0.098 7.092 23.86 -23.6 3.308 -3.39;
+    130   -8.34  -17.4 1.757 0.142  -11.1 1.91 0.15         -0.4  7.463 102.8 -92.3 13.88 -12.7;
+    140   -9.93  -48.4 4.764 0.462  -9.72  -0.04 0.243      -0.41 7.453 -6.14 -1.81 -0.88 -0.19;
+    150   -11.3 9.149  -0.64  -0.14  -8.42  -0.66 0.147     -0.34 8.101 -18.1 10.54 -2.23 1.295;
+    160   -12.2 1.905 0.109  -0.08  -7.44 0.395  -0.18      -0.18 8.702 -9.05 0.532 -0.96 -0.02;
+    170   -12.8  -0.75 0.386  -0.06  -6.78 2.662  -0.67     0.05  8.925 -9.03 0.285 -0.9  -0.08;
+    180   -13  -1.32 0.45  -0.05  -6.58 3.387  -0.84        0.131 9.317 -6.89 -2.08 -0.57 -0.4];
+
+<span class="comment">% assign variables</span>
+alpha = data(:,1);
+p11 = data(:,2);
+p21 = data(:,3);
+q11 = data(:,4);
+q21 = data(:,5);
+p12 = data(:,6);
+p22 = data(:,7);
+q12 = data(:,8);
+q22 = data(:,9);
+p13 = data(:,10);
+p23 = data(:,11);
+p33 = data(:,12);
+q13 = data(:,13);
+q23 = data(:,14);
+
+<span class="comment">% convert and clip input arguments</span>
+theta = rad2deg(abs(theta));
+rho = clip(rho_n, [1.25 Inf]);
+
+<span class="comment">% Eq (8), (13) and (14)</span>
+G_0 = ( (p11.*rho + p21) ./ (rho.^2 + q11.*rho + q21) ) ;
+G_inf = ( (p12.*rho + p22) ./ (rho.^2 + q12.*rho + q22) ) ;
+f_c = (p13.*rho.^2 + p23.*rho + p33) ./ (rho.^2 + q13.*rho + q23);
+
+<span class="comment">% denormalize</span>
+f_c = f_c*speedOfSound / (2*pi*a);
+
+<span class="comment">% linear interpolate at theta</span>
+iG_0 = interp1(alpha, G_0, theta);
+iG_inf = interp1(alpha, G_inf, theta);
+if_c = interp1(alpha, f_c, theta);
+
+<span class="comment">% Eq. (12), (10), and (11)</span>
+V_0 = db2mag(iG_inf);
+tanF = tan(pi*a_0/a*if_c/fs);
+a_c = (V_0 .* tanF - 1)./(V_0 .* tanF + 1);
+
+<span class="comment">% Eq (10)</span>
+V = (V_0 - 1) / 2;
+b0 = V.*(1 - a_c) + 1;
+b1 = V.*(a_c - 1) + a_c;
+a1 = a_c;
+a0 = ones(size(a1));
+
+num = db2mag(iG_0) *  [b0 b1];
+den = [a0, a1];
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [num,den,fs] = nearFieldModel(theta, rho_n)
+%nearFieldModel - computes the IIR filter for the near field transfer
+%function as described in S. Spagnol, E. Tavazzi, and F. Avanzini,
+%"Distance rendering and perception of nearby virtual sound sources with a 
+%near-field filter model,"
+%in Applied Acoustics, vol. 115, pp. 61-73, Jan. 2017.
+%
+% Computes the 
+%
+% Syntax:  [num,den,fs] = nearFieldModel(theta, rho_n)
+%
+% Inputs:
+%    theta - Angle of incidence in radiants
+%    rho_n - Distance of source, normalized to head radius
+%
+% Outputs:
+%    num - Numerator of model filter
+%    den - Denominator of model filter
+%    fs  - Sampling frequency used
+% Example: 
+%    [num,den,fs] = nearFieldModel(0.3, 2.1)
+%
+% Other m-files required: clip, speedOfSound
+%
+% See also: visualize_nearFieldModel.m
+% Author: Dr.-Ing. Sebastian Jiro Schlecht, 
+% International Audio Laboratories, University of Erlangen-Nuremberg
+% email address: sebastian.schlecht@audiolabs-erlangen.de
+% Website: sebastianjiroschlecht.com
+% 21. November 2018; Last revision: 21. November 2018
+
+% constants
+fs = 48000;
+a_0 = 8.75 / 100;
+a = 8.75 / 100;
+
+
+% Table 1
+data = [0  12.97  -9.69  -1.14 0.219  -4.39 2.123  -0.55    -0.06 0.457 -0.67 0.174 -1.75 0.699;
+    10  13.19 234.2 18.48  -8.5  -4.31  -2.78 0.59          -0.17 0.455 0.142 -0.11 -0.01 -0.35;
+    20  12.13  -11.2  -1.25 0.346  -4.18 4.224  -1.01       -0.02 -0.87 3404  -1699 7354  -5350;
+    30  11.19  -9.03  -1.02 0.336  -4.01 3.039  -0.56       -0.32 0.465 -0.91 0.437 -2.18 1.188;
+    40  9.91  -7.87  -0.83 0.379  -3.87  -0.57 0.665        -1.13 0.494 -0.67 0.658 -1.2  0.256;
+    50  8.328  -7.42  -0.67 0.421  -4.1  -34.7 11.39        -8.3  0.549 -1.21 2.02  -1.59 0.816;
+    60  6.493  -7.31  -0.5 0.423  -3.87 3.271  -1.57        0.637 0.663 -1.76 6.815 -1.23 1.166;
+    70  4.455  -7.28  -0.32 0.382  -5.02 0.023  -0.87       0.325 0.691 4.655 0.614 -0.89 0.76;
+    80  2.274  -7.29  -0.11 0.314  -6.72  -8.96 0.37        -0.08 3.507 55.09 589.3 29.23 59.51;
+    90  0.018  -7.48  -0.13 0.24  -8.69  -58.4 5.446        -1.19 -27.4 10336 16818 1945  1707;
+    100   -2.24  -8.04 0.395 0.177  -11.2 11.47  -1.13      0.103 6.371 1.735 -9.39 -0.06 -1.12;
+    110   -4.43  -9.23 0.699 0.132  -12.1 8.716  -0.63      -0.12 7.032 40.88 -44.1 5.635 -6.18;
+    120   -6.49  -11.6 1.084 0.113  -11.1 21.8  -2.01       0.098 7.092 23.86 -23.6 3.308 -3.39;
+    130   -8.34  -17.4 1.757 0.142  -11.1 1.91 0.15         -0.4  7.463 102.8 -92.3 13.88 -12.7;
+    140   -9.93  -48.4 4.764 0.462  -9.72  -0.04 0.243      -0.41 7.453 -6.14 -1.81 -0.88 -0.19;
+    150   -11.3 9.149  -0.64  -0.14  -8.42  -0.66 0.147     -0.34 8.101 -18.1 10.54 -2.23 1.295;
+    160   -12.2 1.905 0.109  -0.08  -7.44 0.395  -0.18      -0.18 8.702 -9.05 0.532 -0.96 -0.02;
+    170   -12.8  -0.75 0.386  -0.06  -6.78 2.662  -0.67     0.05  8.925 -9.03 0.285 -0.9  -0.08;
+    180   -13  -1.32 0.45  -0.05  -6.58 3.387  -0.84        0.131 9.317 -6.89 -2.08 -0.57 -0.4];
+
+% assign variables
+alpha = data(:,1);
+p11 = data(:,2);
+p21 = data(:,3);
+q11 = data(:,4);
+q21 = data(:,5);
+p12 = data(:,6);
+p22 = data(:,7);
+q12 = data(:,8);
+q22 = data(:,9);
+p13 = data(:,10);
+p23 = data(:,11);
+p33 = data(:,12);
+q13 = data(:,13);
+q23 = data(:,14);
+
+% convert and clip input arguments
+theta = rad2deg(abs(theta));
+rho = clip(rho_n, [1.25 Inf]);
+
+% Eq (8), (13) and (14)
+G_0 = ( (p11.*rho + p21) ./ (rho.^2 + q11.*rho + q21) ) ;
+G_inf = ( (p12.*rho + p22) ./ (rho.^2 + q12.*rho + q22) ) ;
+f_c = (p13.*rho.^2 + p23.*rho + p33) ./ (rho.^2 + q13.*rho + q23);
+
+% denormalize
+f_c = f_c*speedOfSound / (2*pi*a);
+
+% linear interpolate at theta
+iG_0 = interp1(alpha, G_0, theta);
+iG_inf = interp1(alpha, G_inf, theta);
+if_c = interp1(alpha, f_c, theta);
+
+% Eq. (12), (10), and (11)
+V_0 = db2mag(iG_inf);
+tanF = tan(pi*a_0/a*if_c/fs);
+a_c = (V_0 .* tanF - 1)./(V_0 .* tanF + 1);
+
+% Eq (10)
+V = (V_0 - 1) / 2;
+b0 = V.*(1 - a_c) + 1;
+b1 = V.*(a_c - 1) + a_c;
+a1 = a_c;
+a0 = ones(size(a1));
+
+num = db2mag(iG_0) *  [b0 b1];
+den = [a0, a1];
+
+##### SOURCE END #####
+--></body></html>
